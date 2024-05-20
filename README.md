@@ -10,9 +10,8 @@ Autonomy
 
             WITHOUT PENALTY - Operators may at any point send a signal to the rover to abort the current attempt and autonomously return to the previous GNSS coordinate, post, or object, and stop within 10 m of it.
 
-            STOPPED AT ANY LOCATION - (whether after a successful arrival, an unsuccessful arrival, or from an abort), teams may program the next or previous location and make any changes to the controls, but may not drive the rover 
- 
-changes to the controls, but may not drive the rover.
+            STOPPED AT ANY LOCATION - (whether after a successful arrival, an unsuccessful arrival, or from an abort), teams may program the next or previous location and make any changes to the controls, but may not drive the rover changes to the controls, but may not drive the rover.
+            
         Locations
             2 GNSS points
                 no vivinity given - is just point
