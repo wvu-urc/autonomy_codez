@@ -55,11 +55,15 @@ class PIDController():
         self.kd = kd
 
         self.previous_error = 0 
+        self.goal = 0 
         self.dt = 0.01
+
+    def update_goal(self, goal):
+        self.goal = goal 
     
-    def update_control_ouput(self, current_state, goal) -> float:
+    def update_control_ouput(self, current_state) -> float:
         time.sleep(self.dt)
-        error = goal - current_state
+        error = self.goal - current_state
         control_adjustment = (error*self.kp) + (((self.previous_error - error)/self.dt)*self.ki) + ((error/self.dt)*self.kd)
 
         self.previous_error = error 
