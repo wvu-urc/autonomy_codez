@@ -1,4 +1,6 @@
 from setuptools import find_packages, setup
+import os 
+from glob import glob
 
 package_name = 'autonomy_pkg'
 
@@ -10,6 +12,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))) # NEED TO ADD THIS FOR EVERY NEW LAUNCH FILE 
+
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,6 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'autonomy_ptp_planner_node = autonomy_pkg.planner:main',
+
         ],
     },
 )

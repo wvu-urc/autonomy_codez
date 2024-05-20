@@ -1,5 +1,18 @@
 Notes:
     Zero point turns 
+
+Yolo:
+
+
+    1 meter min range
+
+    2 meters - 5 cm of error 
+        40 cm out of axis 
+    
+    7 meters - 50 cm of error 
+
+    11 meters max range 
+
     
 
 Autonomy
@@ -58,6 +71,9 @@ Autonomy
                 GNSS Point based
                     
                     Just apply the simple planner conrol loop
+
+Current implementation 
+
 
 
 

@@ -1,0 +1,10 @@
+
+
+call service 
+
+service returns a list of the aruco tags it sees
+
+    tags are output as a list of urc points relative to the frame passed in on node startup 
+ 
+
+when launch node, can use heimdall and wanderer 
