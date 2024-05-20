@@ -45,7 +45,27 @@ from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
 from geometry_msgs.msg import PoseStamped
+import time 
 
+class PIDController():
+
+    def __init__(self, kp, ki, kd):
+        self.kp = kp
+        self.ki = ki 
+        self.kd = kd
+
+        self.previous_error = 0 
+        self.dt = 0.01
+    
+    def update_control_ouput(self, current_state, goal) -> float:
+        time.sleep(self.dt)
+        error = goal - current_state
+        control_adjustment = (error*self.kp) + (((self.previous_error - error)/self.dt)*self.ki) + ((error/self.dt)*self.kd)
+
+        self.previous_error = error 
+        return control_adjustment
+
+    
 class PlannerNode(Node):
 
     def __init__(self):
@@ -97,6 +117,8 @@ class PlannerNode(Node):
 
         if self.goal_gps_location is None:
             pass
+
+    
 
 
 
