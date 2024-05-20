@@ -1,3 +1,7 @@
+Notes:
+    Zero point turns 
+    
+
 Autonomy
 
     Important Rules
