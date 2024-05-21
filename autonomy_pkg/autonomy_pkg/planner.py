@@ -2,8 +2,9 @@ from autonomy_pkg.helpers import calculate_distance, calculate_goal_heading, cal
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import NavSatFix
-from geometry_msgs.msg import PoseStamped, Point
+from std_msgs.msg import Float64
 import time 
 from math import sqrt
 from autonomy_pkg.pid import PidController
@@ -20,16 +21,20 @@ class PlannerNode(Node):
         super().__init__('autonomy_ptp_planner_node')
 
         # distance controller parameters
-        self.declare_parameter('distance_kp', 1.0)
-        self.declare_parameter('distance_ki', 0.0)
-        self.declare_parameter('distance_kd', 0.5)
-        self.declare_parameter('distance_net_k', 1)
+        self.declare_parameter('distance_kp', 0.1)
+        self.declare_parameter('distance_ki', 0.01)
+        self.declare_parameter('distance_kd', 0.0)
+        self.declare_parameter('distance_net_k', 1.0)
+        self.declare_parameter('internal_location_tolerance_meters', 1.0)
 
         # heading controller parameters
-        self.declare_parameter('heading_kp', 1.0)
-        self.declare_parameter('heading_ki', 0.0)
-        self.declare_parameter('heading_kd', 0.5)
-        self.declare_parameter('heading_net_k', 1)
+        self.declare_parameter('heading_kp', 0.1)
+        self.declare_parameter('heading_ki', 0.01)
+        self.declare_parameter('heading_kd', 0.0)
+        self.declare_parameter('heading_net_k', 1.0)
+        self.declare_parameter('internal_heading_tolerance_degrees', 5.0)
+
+
 
         # outgoing control output publishing parameters
         self.declare_parameter('output_control_topic','/cmd_vel')
@@ -40,10 +45,16 @@ class PlannerNode(Node):
 
         # incoming sensor output subsription parameters
         self.declare_parameter('input_current_gps_sub_topic','/mavros/global_position/global')
-        self.declare_parameter('input_current_heading_sub_topic','/mavros/local/pose')
+        self.declare_parameter('input_current_heading_sub_topic','/mavros/global_position/compass_hdg')
 
         self.declare_parameter('planner_enabled', True)
         self.declare_parameter('debugging', True)
+
+        self.mavros_qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        ) 
 
         # sends command velocities to drivebase
         self.output_control_pub = self.create_publisher(
@@ -57,7 +68,7 @@ class PlannerNode(Node):
             msg_type= NavSatFix,
             topic= self.get_parameter('input_goal_gps_sub_topic').get_parameter_value().string_value,
             callback= self.update_goal_gps,
-            qos_profile= 1
+            qos_profile= 10
             )
         
         # recieves current rover gps location
@@ -65,19 +76,19 @@ class PlannerNode(Node):
             msg_type= NavSatFix,
             topic= self.get_parameter('input_current_gps_sub_topic').get_parameter_value().string_value,
             callback= self.update_curr_gps,
-            qos_profile= 1
+            qos_profile= self.mavros_qos_profile
             )
         
         # recieves current rover heading information
         self.input_current_heading_sub = self.create_subscription(
-            msg_type= PoseStamped,
+            msg_type= Float64,
             topic= self.get_parameter('input_current_heading_sub_topic').get_parameter_value().string_value,
             callback= self.update_curr_heading,
-            qos_profile= 1
+            qos_profile= self.mavros_qos_profile
             )
         
         # da bread and da butter
-        self.create_timer(0.01,self.execute_control_output)
+        self.create_timer((1.0/self.get_parameter('output_control_topic_frequency_hz').get_parameter_value().double_value),self.execute_control_output)
     
         self.goal_lat_long: LatLong = LatLong(0,0)
         self.curr_lat_long: LatLong = LatLong(0,0)
@@ -86,7 +97,11 @@ class PlannerNode(Node):
         self.heading_controller = PidController()
         self.distance_controller = PidController()
 
-    def print_if_debug(self, text: str):
+    def is_within_tolerance(self, error, tolerance) -> bool:
+        '''checks if a given error is WITHIN OR AT a given tolerance'''
+        return abs(error) <= tolerance
+
+    def print_if_debug(self, text: str) -> None:
         '''gets around ros's annoying method wrapping'''
         if self.get_parameter('debugging').get_parameter_value().bool_value:
             self.get_logger().info(text)
@@ -106,26 +121,29 @@ class PlannerNode(Node):
         self.curr_lat_long.lat = curr_gps_msg.latitude
         self.curr_lat_long.long = curr_gps_msg.longitude 
 
-    def update_curr_heading(self, pose_msg: PoseStamped) -> None:
+    def update_curr_heading(self, heading_msg: Float64) -> None:
         '''recieves ros heading data, saves in local node object to self.curr_heading_degrees'''
-        _, _, yaw = quaternion_to_euler((pose_msg.pose.orientation.x, pose_msg.pose.orientation.y, pose_msg.pose.orientation.z, pose_msg.pose.orientation.w))
-        self.print_if_debug(f'current heading: {yaw}')
-        self.curr_heading_degrees = yaw
+        self.print_if_debug(f'current heading: {heading_msg}')
+        self.curr_heading_degrees = heading_msg
 
     def execute_control_output(self) -> None:
         '''take in current gps information, calculate distance and heading, apply controller, execute controller outputs'''
 
         if self.goal_lat_long.lat == 0.0 or self.goal_lat_long.long == 0.0:
-            self.get_logger().info("Have not recieved a goal, not starting control loop")
+            # self.get_logger().info("Have not recieved a goal, not starting control loop")
             return
         if self.curr_lat_long.lat == 0.0 or self.curr_lat_long.long == 0.0:
-            self.get_logger().info("Have not recieved the rover's current location, not starting control loop")
+            # self.get_logger().info("Have not recieved the rover's current location, not starting control loop")
             return
         if self.curr_heading_degrees is None:
-            self.get_logger().info("Have not recieved the rover's current heading, not starting control loop")
+            # self.get_logger().info("Have not recieved the rover's current heading, not starting control loop")
             return
+        
         # positional error and control calculation
         curr_goal_distance = calculate_distance(self.goal_lat_long.lat, self.goal_lat_long.long, self.curr_lat_long.lat, self.curr_lat_long.long)
+       
+        self.print_if_debug(f'current distance error {curr_goal_distance}')
+       
         linear_control_velocity = self.distance_controller.update(
             current_error=curr_goal_distance,
             kp=self.get_parameter('distance_kp').get_parameter_value().double_value,
@@ -133,10 +151,14 @@ class PlannerNode(Node):
             kd=self.get_parameter('distance_kd').get_parameter_value().double_value,
             total_gain=self.get_parameter('distance_net_k').get_parameter_value().double_value,
         )
+        self.print_if_debug(f'linear output control (m/s) {linear_control_velocity}')
 
         # rotational error and control calculation
         curr_compass_goal_heading_degrees = calculate_goal_heading(self.goal_lat_long.lat, self.goal_lat_long.long, self.curr_lat_long.lat, self.curr_lat_long.long)
         curr_goal_heading_error = calculate_heading_error(curr_compass_goal_heading_degrees, self.curr_heading_degrees)
+        
+        self.print_if_debug(f'current heading error {curr_goal_heading_error}')
+        
         angular_control_velocity = self.heading_controller.update(
             current_error=curr_goal_heading_error,
             kp=self.get_parameter('heading_kp').get_parameter_value().double_value,
@@ -144,12 +166,19 @@ class PlannerNode(Node):
             kd=self.get_parameter('heading_kd').get_parameter_value().double_value,
             total_gain=self.get_parameter('heading_net_k').get_parameter_value().double_value,
         )
+        self.print_if_debug(f'output angular control velcity (rad/sec) {angular_control_velocity}\n\n')
 
         executed_twist = Twist()
-        executed_twist.linear.x = linear_control_velocity
-        executed_twist.angular.z = angular_control_velocity
 
-        self.print_if_debug(f'generated command message: {executed_twist}')
+        if not self.is_within_tolerance(curr_goal_distance, self.get_parameter('internal_location_tolerance_meters')):
+            executed_twist.linear.x = linear_control_velocity
+        else:
+            self.get_logger().info('sucessfully reached goal')
+       
+        if not self.is_within_tolerance(curr_goal_heading_error, self.get_parameter('internal_heading_tolerance_degrees')):
+            executed_twist.angular.z = angular_control_velocity
+        else:
+            self.get_logger().info('sucessfully reached heading angle')
 
         if self.get_parameter('planner_enabled').get_parameter_value().bool_value:
             self.output_control_pub.publish(executed_twist)
