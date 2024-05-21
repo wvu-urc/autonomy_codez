@@ -1,3 +1,10 @@
+Tuesday To Do:
+
+- Add tolerance to pid error
+- Debug why values are zero for cmd_vel output
+- Test outside with real data now
+
+
 Notes:
     Zero point turns 
 
