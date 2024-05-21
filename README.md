@@ -72,9 +72,6 @@ Autonomy
                     
                     Just apply the simple planner conrol loop
 
-Current implementation 
-
-
 
 
                 

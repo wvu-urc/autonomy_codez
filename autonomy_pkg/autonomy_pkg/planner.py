@@ -75,6 +75,9 @@ class PlannerNode(Node):
             callback= self.update_curr_heading,
             qos_profile= 1
             )
+        
+        # da bread and da butter
+        self.create_timer(0.01,self.execute_control_output)
     
         self.goal_lat_long: LatLong = LatLong(0,0)
         self.curr_lat_long: LatLong = LatLong(0,0)
@@ -114,13 +117,13 @@ class PlannerNode(Node):
 
         if self.goal_lat_long.lat == 0.0 or self.goal_lat_long.long == 0.0:
             self.get_logger().info("Have not recieved a goal, not starting control loop")
-
+            return
         if self.curr_lat_long.lat == 0.0 or self.curr_lat_long.long == 0.0:
             self.get_logger().info("Have not recieved the rover's current location, not starting control loop")
-
+            return
         if self.curr_heading_degrees is None:
             self.get_logger().info("Have not recieved the rover's current heading, not starting control loop")
-
+            return
         # positional error and control calculation
         curr_goal_distance = calculate_distance(self.goal_lat_long.lat, self.goal_lat_long.long, self.curr_lat_long.lat, self.curr_lat_long.long)
         linear_control_velocity = self.distance_controller.update(
