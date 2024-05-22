@@ -8,17 +8,14 @@ class PidController():
 		self.val = 0
 
 	def update(self, current_error: float, kp:float, ki: float, kd:float, total_gain: float) -> float:
-		'''Runa an interation of the control loop and returns the output control value'''
+		'''Runs an interation of the control loop and returns the output control value'''
 		curr_time = time.time()
 		self.accumuated_error += self.previous_error
 
-		# calculate control value
 		result_p = kp * current_error
 		result_d = kd * ((current_error - self.previous_error) / (curr_time - self.previous_time))
 		result_i = ki * self.accumuated_error
 		self.val = (result_p + result_d + result_i) * total_gain
-
-		# update internal previous values
 		self.previous_error = current_error
 		self.previous_time = curr_time
 

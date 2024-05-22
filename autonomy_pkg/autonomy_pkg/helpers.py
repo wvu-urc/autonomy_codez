@@ -25,8 +25,6 @@ def quaternion_to_euler(q):
 
 def calculate_heading_error(goal_heading, current_heading):
     '''Takes in a goal heading and current heading, returns requried angle change where positive indicates a clockwise angle change required to make the goal and current heading be the same'''
-    goal_heading = goal_heading % 360
-    current_heading = current_heading % 360
     
     signed_angle_change = goal_heading - current_heading
     
