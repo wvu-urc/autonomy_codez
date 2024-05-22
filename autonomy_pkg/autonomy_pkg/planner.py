@@ -170,13 +170,17 @@ class PlannerNode(Node):
 
         executed_twist = Twist()
 
-        if not self.is_within_tolerance(curr_goal_distance, self.get_parameter('internal_location_tolerance_meters').get_parameter_value().double_value):
+        reached_location = self.is_within_tolerance(curr_goal_distance, self.get_parameter('internal_location_tolerance_meters').get_parameter_value().double_value)
+        reached_heading = self.is_within_tolerance(curr_goal_heading_error, self.get_parameter('internal_heading_tolerance_degrees').get_parameter_value().double_value)
+        
+        if not reached_location:
             executed_twist.linear.x = linear_control_velocity
         else:
             self.get_logger().info('sucessfully reached goal')
-       
-        if not self.is_within_tolerance(curr_goal_heading_error, self.get_parameter('internal_heading_tolerance_degrees').get_parameter_value().double_value):
+
+        if not reached_heading and not reached_location:
             executed_twist.angular.z = angular_control_velocity
+        
         else:
             self.get_logger().info('sucessfully reached heading angle')
 
