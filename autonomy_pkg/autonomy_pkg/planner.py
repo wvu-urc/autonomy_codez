@@ -124,7 +124,11 @@ class PlannerNode(Node):
     def update_curr_heading(self, heading_msg: Float64) -> None:
         '''recieves ros heading data, saves in local node object to self.curr_heading_degrees'''
         self.print_if_debug(f'current heading: {heading_msg}')
+<<<<<<< HEAD
         self.curr_heading_degrees = heading_msg.data
+=======
+        self.curr_heading_degrees = heading_msg
+>>>>>>> 1b4c2ed5336019347be2b08135bb2c9136c90ed0
 
     def execute_control_output(self) -> None:
         '''take in current gps information, calculate distance and heading, apply controller, execute controller outputs'''
@@ -170,12 +174,20 @@ class PlannerNode(Node):
 
         executed_twist = Twist()
 
+<<<<<<< HEAD
         if not self.is_within_tolerance(curr_goal_distance, self.get_parameter('internal_location_tolerance_meters').get_parameter_value().double_value):
+=======
+        if not self.is_within_tolerance(curr_goal_distance, self.get_parameter('internal_location_tolerance_meters')):
+>>>>>>> 1b4c2ed5336019347be2b08135bb2c9136c90ed0
             executed_twist.linear.x = linear_control_velocity
         else:
             self.get_logger().info('sucessfully reached goal')
        
+<<<<<<< HEAD
         if not self.is_within_tolerance(curr_goal_heading_error, self.get_parameter('internal_heading_tolerance_degrees').get_parameter_value().double_value):
+=======
+        if not self.is_within_tolerance(curr_goal_heading_error, self.get_parameter('internal_heading_tolerance_degrees')):
+>>>>>>> 1b4c2ed5336019347be2b08135bb2c9136c90ed0
             executed_twist.angular.z = angular_control_velocity
         else:
             self.get_logger().info('sucessfully reached heading angle')
