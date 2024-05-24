@@ -1,18 +1,11 @@
-from autonomy_pkg.helpers import calculate_distance, calculate_goal_heading, calculate_heading_error, quaternion_to_euler
+from autonomy_pkg.helpers import LatLong, calculate_distance, calculate_goal_heading, calculate_heading_error
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Float64
-import time 
-from math import sqrt
 from autonomy_pkg.pid import PidController
-class LatLong():
-
-    def __init__(self, lat, long):
-        self.lat: float = lat
-        self.long: float = long
 
 class PlannerNode(Node):
 
@@ -34,11 +27,9 @@ class PlannerNode(Node):
         self.declare_parameter('heading_net_k', 0.1)
         self.declare_parameter('internal_heading_tolerance_degrees', 5.0)
 
-
-
         # outgoing control output publishing parameters
         self.declare_parameter('output_control_topic','/cmd_vel')
-        self.declare_parameter('output_control_topic_frequency_hz', 30.0)
+        self.declare_parameter('output_control_topic_frequency_hz', 10.0)
 
         # human interfacing subsciption parameter
         self.declare_parameter('input_goal_gps_sub_topic','/goal_gps')
@@ -130,13 +121,13 @@ class PlannerNode(Node):
         '''take in current gps information, calculate distance and heading, apply controller, execute controller outputs'''
 
         if self.goal_lat_long.lat == 0.0 or self.goal_lat_long.long == 0.0:
-            # self.get_logger().info("Have not recieved a goal, not starting control loop")
+            self.get_logger().info("Have not recieved a goal, not starting control loop")
             return
         if self.curr_lat_long.lat == 0.0 or self.curr_lat_long.long == 0.0:
-            # self.get_logger().info("Have not recieved the rover's current location, not starting control loop")
+            self.get_logger().info("Have not recieved the rover's current location, not starting control loop")
             return
         if self.curr_heading_degrees is None:
-            # self.get_logger().info("Have not recieved the rover's current heading, not starting control loop")
+            self.get_logger().info("Have not recieved the rover's current heading, not starting control loop")
             return
         
         # positional error and control calculation
@@ -177,7 +168,7 @@ class PlannerNode(Node):
             executed_twist.linear.x = linear_control_velocity
         else:
             self.get_logger().info('sucessfully reached goal')
-
+            
         if not reached_heading and not reached_location:
             executed_twist.angular.z = angular_control_velocity
         

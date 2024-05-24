@@ -1,27 +1,10 @@
 import math
-from geometry_msgs.msg import Point
-from time import time
 
-import math
+class LatLong():
 
-def quaternion_to_euler(q):
-    q0, q1, q2, q3 = q
-
-    sinr_cosp = 2 * (q0 * q1 + q2 * q3)
-    cosr_cosp = 1 - 2 * (q1 * q1 + q2 * q2)
-    roll = math.atan2(sinr_cosp, cosr_cosp)
-
-    sinp = 2 * (q0 * q2 - q3 * q1)
-    if abs(sinp) >= 1:
-        pitch = math.copysign(math.pi / 2, sinp)
-    else:
-        pitch = math.asin(sinp)
-
-    siny_cosp = 2 * (q0 * q3 + q1 * q2)
-    cosy_cosp = 1 - 2 * (q2 * q2 + q3 * q3)
-    yaw = math.atan2(siny_cosp, cosy_cosp)
-
-    return roll, pitch, yaw
+    def __init__(self, lat, long):
+        self.lat: float = lat
+        self.long: float = long
 
 def calculate_heading_error(goal_heading, current_heading):
     '''Takes in a goal heading and current heading, returns requried angle change where positive indicates a clockwise angle change required to make the goal and current heading be the same'''
@@ -62,7 +45,3 @@ def calculate_distance(lat1, lon1, lat2, lon2)-> float:
     
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return earth_radius_meters * c
-
-def euuclidean_distance(pt1: Point, pt2: Point) -> float:
-    '''calculates the euclidean distance between two points in the units the points were given'''
-    return math.sqrt((pt1.x - pt2.x)**2 + (pt1.y - pt2.y)**2)

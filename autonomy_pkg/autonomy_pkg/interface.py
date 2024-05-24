@@ -1,7 +1,6 @@
 import rclpy, threading
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
-from std_msgs.msg import Float64
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
 class LatLong():
@@ -41,7 +40,6 @@ class AutonomyInterfaceNode(Node):
         self.current_gps_location = NavSatFix()
 
         threading.Thread(target=self.send_gps_goal, daemon=True).start()
-
         
     def print_if_debug(self, text: str) -> None:
         '''gets around ros's annoying method wrapping'''
@@ -82,11 +80,7 @@ class AutonomyInterfaceNode(Node):
         else:
             self.get_logger().info(f"not sending")
 
-
-
         self.send_gps_goal()
-
-  
     
 def main(args=None):
     rclpy.init(args=args)

@@ -1,0 +1,31 @@
+/**:
+  ros__parameters:
+
+    # Not used rn, will be in use when good launch file is made
+
+    current_gps_location_topic: /mavros/global_position/global
+    current_heading_topic: /mavros/global_position/compass_hdg
+   
+    goal_gps_location_topic: /goal_gps
+
+    output_control_topic: /cmd_vel
+    output_control_freqnecy_hz: 10.0
+
+    controller:
+
+      distance:
+        kp: 0.001
+        ki: 0.0001
+        kd: 0.0
+        knet: 0.1
+        tolerance_meters: 2.0
+      
+      heading: 0.001
+        kp: 0.001
+        ki: 0.0001
+        kd: 0.0
+        knet: 0.1
+        tolerance_degrees: 5.0
+
+
+
