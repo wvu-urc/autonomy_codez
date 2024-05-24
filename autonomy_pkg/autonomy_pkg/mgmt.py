@@ -65,7 +65,6 @@ from sensor_msgs.msg import NavSatFix
 from geometry_msgs.msg import PoseStamped, Point
 import time 
 from math import sqrt
-from helpers import calculate_distance, calculate_target_heading
 
 class MgmtNode(Node):
 

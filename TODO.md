@@ -1,27 +1,3 @@
-Tuesday To Do:
-
-- Add tolerance to pid error
-- Debug why values are zero for cmd_vel output
-- Test outside with real data now
-
-
-Notes:
-    Zero point turns 
-
-Yolo:
-
-
-    1 meter min range
-
-    2 meters - 5 cm of error 
-        40 cm out of axis 
-    
-    7 meters - 50 cm of error 
-
-    11 meters max range 
-
-    
-
 Autonomy
 
     Important Rules
@@ -79,6 +55,22 @@ Autonomy
                     
                     Just apply the simple planner conrol loop
 
+
+General Notes:
+    Remove zero point turns 
+
+Yolo Notes:
+
+    1 meter min range
+
+    2 meters - 5 cm of error 
+        40 cm out of axis 
+    
+    7 meters - 50 cm of error 
+
+    11 meters max range 
+
+    
 
 
                 
