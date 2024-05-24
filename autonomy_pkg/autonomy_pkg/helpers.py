@@ -1,10 +1,30 @@
 import math
 
+EARTH_RADIUS_METERS = 6_378_137
+
 class LatLong():
 
     def __init__(self, lat, long):
         self.lat: float = lat
         self.long: float = long
+
+def calculate_gps_from_relative_distance_vector(lat, long, heading, rel_x_distance, rel_y_distance) -> tuple[float]:
+    '''Returns a new lat and long after a relative x and relative y distance are added to the current lat and long given a heading angle from 0 to 360 relative to true north.'''
+
+    heading_rad = math.radians(heading)
+
+    total_distance = math.sqrt(rel_x_distance**2 + rel_y_distance**2)
+    angle_from_heading = math.atan2(rel_y_distance, rel_x_distance)
+    total_heading = heading_rad + angle_from_heading
+
+    delta_lat = (total_distance * math.cos(total_heading)) / EARTH_RADIUS_METERS * (180 / math.pi)
+    delta_lon = (total_distance * math.sin(total_heading)) / (EARTH_RADIUS_METERS * math.cos(math.radians(lat))) * (180 / math.pi)
+    
+    new_lat = lat + delta_lat
+    new_long = long + delta_lon
+    
+    return (new_lat, new_long)
+
 
 def calculate_heading_error(goal_heading, current_heading):
     '''Takes in a goal heading and current heading, returns requried angle change where positive indicates a clockwise angle change required to make the goal and current heading be the same'''
@@ -33,7 +53,6 @@ def calculate_goal_heading(lat1, lon1, lat2, lon2)-> float:
 
 def calculate_distance(lat1, lon1, lat2, lon2)-> float:
     '''returns a goal heading angle where (in degrees) north is 0, east is 90, south is 180, west is 270'''
-    earth_radius_meters = 6_378_137 
     phi1 = math.radians(lat1)
     phi2 = math.radians(lat2)
     delta_phi = math.radians(lat2 - lat1)
@@ -44,4 +63,4 @@ def calculate_distance(lat1, lon1, lat2, lon2)-> float:
         math.sin(delta_lambda / 2.0) ** 2
     
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return earth_radius_meters * c
+    return EARTH_RADIUS_METERS * c
