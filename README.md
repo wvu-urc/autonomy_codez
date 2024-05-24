@@ -16,9 +16,6 @@ ros2 run autonomy_pkg autonomy_text_interface_node
 <br>
 <br>
 <br>
-<br>
-<br>
-<br>
 
 This does both
 
