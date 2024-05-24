@@ -35,8 +35,7 @@ ros2 launch autonomy_pkg autonomy.launch.py
 - ### [planner.py](src/autonomy/autonomy_pkg/autonomy_pkg/planner.py): ros wrapper for controller-ing robot heading and distance errors (do the thing, get to things)
 
 
-Notes:
-
+## Misc. Notes:
 - the contents of the [config](src/autonomy/autonomy_pkg/config) directory is not actively used, will be for later 
 - the [autonomy_interfaces](src/autonomy/autonomy_interfaces) directory is if custom messages are needed in a cpp-buildable package
 - [TODO.md](src/autonomy/TODO.md) contains condensed mission rules, and things to still be done 
