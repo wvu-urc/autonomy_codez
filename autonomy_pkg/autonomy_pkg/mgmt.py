@@ -32,30 +32,6 @@ while have_a_goal_location
                     break, run loop
 
 x minutes will be determined by the euclidean distance between the 
-
-
-Take in state information 
-    gps, roll, pitch, yaw, maybe velocity - keep simple for now 
-Take in goal location
-Output to command velocity 
-
-
-pid planner current control flow 
-
-node makes bunch of parameters
-stores parameters in local variables 
-makes a bunch of thread locks 
-
-
-subscriptions
-    current waypoint
-publishings
-    current local pose
-    current status
-    
-services
-
-
 '''
 
 import rclpy
