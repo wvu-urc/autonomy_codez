@@ -63,7 +63,7 @@ class AutonomyInterfaceNode(Node):
         else:
             try:
                 lat = float(input("input latitude:\n"))
-                long = float(input("input latitude:\n"))
+                long = float(input("input longitude:\n"))
             except TypeError as e:
                 self.get_logger().info(f'TypeError {e}')
                 return

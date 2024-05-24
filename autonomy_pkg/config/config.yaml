@@ -20,9 +20,9 @@
         knet: 0.1
         tolerance_meters: 2.0
       
-      heading: 0.001
-        kp: 0.001
-        ki: 0.0001
+      heading:
+        kp: 0.0001
+        ki: 0.0000
         kd: 0.0
         knet: 0.1
         tolerance_degrees: 5.0

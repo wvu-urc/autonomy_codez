@@ -14,15 +14,15 @@ class PlannerNode(Node):
         super().__init__('autonomy_ptp_planner_node')
 
         # distance controller parameters
-        self.declare_parameter('distance_kp', 0.001)
-        self.declare_parameter('distance_ki', 0.0001)
+        self.declare_parameter('distance_kp', 1.0)
+        self.declare_parameter('distance_ki', 0.000)
         self.declare_parameter('distance_kd', 0.0)
         self.declare_parameter('distance_net_k', 0.1)
-        self.declare_parameter('internal_location_tolerance_meters', 1.0)
+        self.declare_parameter('internal_location_tolerance_meters', 3.0)
 
         # heading controller parameters
-        self.declare_parameter('heading_kp', 0.001)
-        self.declare_parameter('heading_ki', 0.0001)
+        self.declare_parameter('heading_kp', -0.01)
+        self.declare_parameter('heading_ki', 0.000)
         self.declare_parameter('heading_kd', 0.0)
         self.declare_parameter('heading_net_k', 0.1)
         self.declare_parameter('internal_heading_tolerance_degrees', 5.0)
@@ -114,7 +114,7 @@ class PlannerNode(Node):
 
     def update_curr_heading(self, heading_msg: Float64) -> None:
         '''recieves ros heading data, saves in local node object to self.curr_heading_degrees'''
-        self.print_if_debug(f'current heading: {heading_msg}')
+        self.print_if_debug(f'current heading: {heading_msg.data}')
         self.curr_heading_degrees = heading_msg.data
 
     def execute_control_output(self) -> None:
@@ -146,7 +146,9 @@ class PlannerNode(Node):
 
         # rotational error and control calculation
         curr_compass_goal_heading_degrees = calculate_goal_heading(self.goal_lat_long.lat, self.goal_lat_long.long, self.curr_lat_long.lat, self.curr_lat_long.long)
-        curr_goal_heading_error = calculate_heading_error(curr_compass_goal_heading_degrees, self.curr_heading_degrees)
+        
+        #TODO REMOVE MAGIC NUMBER!!!!!!!!!!!!
+        curr_goal_heading_error = calculate_heading_error(curr_compass_goal_heading_degrees, self.curr_heading_degrees + 180.0)
         
         self.print_if_debug(f'current heading error {curr_goal_heading_error}')
         
@@ -174,6 +176,9 @@ class PlannerNode(Node):
         
         else:
             self.get_logger().info('sucessfully reached heading angle')
+
+        if (executed_twist.linear.x > 1.0):
+            executed_twist.linear.x = 1.0
 
         if self.get_parameter('planner_enabled').get_parameter_value().bool_value:
             self.output_control_pub.publish(executed_twist)
