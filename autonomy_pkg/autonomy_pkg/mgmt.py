@@ -1,3 +1,30 @@
+'''
+My guess is you will need the following:
+
+Lights switching is probably broken in code somewhere
+
+Need way to parse a teleop request signal and change lights 
+
+Need to interrupt search and remove generated search points upon seeing aruco/objects and updating goal location 
+
+Will likely need a 2d array
+
+    search points 
+    |
+    V
+[] [] [] [] [] [] [] [] [] [] [] []
+
+   [] 
+   []
+   []
+   []
+
+
+   if while at a nested array (searching), and see aruco or objects, update goal so it is at object, delete or skip to avoid traversing now outdated search points
+
+'''
+
+
 
 import rclpy
 from rclpy.node import Node
