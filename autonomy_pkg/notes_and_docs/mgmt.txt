@@ -1,0 +1,85 @@
+'''
+https://github.com/mavlink/mavros/tree/ros2/mavros_msgs
+https://docs.px4.io/main/en/ros/mavros_offboard_python.html
+
+while have_a_goal_location
+
+    did i get a return request signal
+
+        yes
+            
+            update goal_location
+        no
+            
+
+    did i get a teleop request signal
+
+        yes
+            exit
+        no
+
+            am i at the goal location
+
+                yes
+
+                    stop, lights
+                    break, run loop
+                
+                no
+
+                    what is my location
+                    apply controls to go to location
+                    break, run loop
+
+x minutes will be determined by the euclidean distance between the 
+'''
+
+
+
+'''
+will recieve a list of gps points
+need to parse them and make an internal list
+
+
+need to recieve a list of points, update internal points
+
+once parsed, publish out first point
+if planner_reached_goal, send next point
+
+while planner is executing:
+
+    if it is an aurco or yolo and it recieves gps points from aruco or yolo, send that as the goal gps, and skip search points
+
+    also check if a signal has been recieved to go to the last point, and go to it 
+
+
+
+
+parsing:
+
+labels:
+
+    gps
+
+        just add gps to list
+
+    aruco
+
+        generate search points
+
+    yolo
+
+        generate search points
+
+
+        
+
+for now:
+
+recieve list of points, parse and generate search 
+
+publish new goal
+if recieved sucess, repeat
+
+
+'''

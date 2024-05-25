@@ -1,6 +1,7 @@
-import math
+import math, random
 
 EARTH_RADIUS_METERS = 6_378_137
+METERS_PER_DEGREE_LATITUDE = 111_320
 
 class LatLong():
 
@@ -64,3 +65,24 @@ def calculate_distance(lat1, lon1, lat2, lon2)-> float:
     
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return EARTH_RADIUS_METERS * c
+
+
+def generate_n_random_gps_points(center_lat, center_lon, radius_meters, n):
+    """Generate n random GPS points within a given radius around a central GPS location"""
+
+    def generate_random_point():
+        angle = random.uniform(0, 2 * math.pi)
+        r = radius_meters * abs(random.gauss(0, 0.5))
+        r = min(r, radius_meters)
+        
+        delta_lat = r * math.cos(angle) / METERS_PER_DEGREE_LATITUDE
+        delta_lon = r * math.sin(angle) / (METERS_PER_DEGREE_LATITUDE * math.cos(math.radians(center_lat))) 
+        
+        return center_lat + delta_lat, center_lon + delta_lon
+
+    points = []
+    for _ in range(n):
+        point = generate_random_point()
+        points.append(point)
+    
+    return points
