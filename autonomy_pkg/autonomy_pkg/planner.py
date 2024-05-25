@@ -4,7 +4,7 @@ from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import NavSatFix
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Bool
 from autonomy_pkg.pid import PidController
 
 class PlannerNode(Node):
@@ -30,6 +30,7 @@ class PlannerNode(Node):
         # outgoing control output publishing parameters
         self.declare_parameter('output_control_topic','/cmd_vel')
         self.declare_parameter('output_control_topic_frequency_hz', 10.0)
+        self.declare_parameter('output_feedback_topic','/planner_reached_goal')
 
         # human interfacing subsciption parameter
         self.declare_parameter('input_goal_gps_sub_topic','/goal_gps')
@@ -51,6 +52,13 @@ class PlannerNode(Node):
         self.output_control_pub = self.create_publisher(
             msg_type= Twist,
             topic= self.get_parameter('output_control_topic').get_parameter_value().string_value,
+            qos_profile= 10,
+            )
+        
+            # sends command velocities to drivebase
+        self.planner_feedback_pub = self.create_publisher(
+            msg_type= Bool,
+            topic= self.get_parameter('output_feedback_topic').get_parameter_value().string_value,
             qos_profile= 10,
             )
         
@@ -162,27 +170,27 @@ class PlannerNode(Node):
         self.print_if_debug(f'output angular control velcity (rad/sec) {angular_control_velocity}\n\n')
 
         executed_twist = Twist()
+        sucess_feedback = Bool()
 
         reached_location = self.is_within_tolerance(curr_goal_distance, self.get_parameter('internal_location_tolerance_meters').get_parameter_value().double_value)
         reached_heading = self.is_within_tolerance(curr_goal_heading_error, self.get_parameter('internal_heading_tolerance_degrees').get_parameter_value().double_value)
         
         if not reached_location:
             executed_twist.linear.x = linear_control_velocity
+            if not reached_heading:
+                executed_twist.angular.z = angular_control_velocity
+            sucess_feedback.data = False
         else:
             self.get_logger().info('sucessfully reached goal')
-            
-        if not reached_heading and not reached_location:
-            executed_twist.angular.z = angular_control_velocity
-        
-        else:
-            self.get_logger().info('sucessfully reached heading angle')
+            sucess_feedback.data = True
 
         if (executed_twist.linear.x > 1.0):
             executed_twist.linear.x = 1.0
 
         if self.get_parameter('planner_enabled').get_parameter_value().bool_value:
             self.output_control_pub.publish(executed_twist)
-    
+            self.planner_feedback_pub.publish(sucess_feedback)
+
 def main(args=None):
     rclpy.init(args=args)
     node = PlannerNode()
