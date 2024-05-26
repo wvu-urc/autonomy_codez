@@ -4,8 +4,9 @@ from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import NavSatFix
-from std_msgs.msg import Float64, Bool
+from std_msgs.msg import Float64, Bool, Int64
 from autonomy_pkg.pid import PidController
+import time
 
 class PlannerNode(Node):
 
@@ -18,7 +19,7 @@ class PlannerNode(Node):
         self.declare_parameter('distance_ki', 0.000)
         self.declare_parameter('distance_kd', 0.0)
         self.declare_parameter('distance_net_k', 0.1)
-        self.declare_parameter('internal_location_tolerance_meters', 3.0)
+        self.declare_parameter('internal_location_tolerance_meters', 2.0)
 
         # heading controller parameters
         self.declare_parameter('heading_kp', -0.01)
@@ -41,6 +42,11 @@ class PlannerNode(Node):
 
         self.declare_parameter('planner_enabled', True)
         self.declare_parameter('debugging', True)
+
+        self.made_to_goal = 0
+        self.GOAL_CONFIRM_COUNT = 30 # number of succussful times in a row that we are within range
+        self.target_object_id = 99
+        self.intermediate_tolerance = 3.0
 
         self.mavros_qos_profile = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -86,6 +92,9 @@ class PlannerNode(Node):
             qos_profile= self.mavros_qos_profile
             )
         
+        self.create_subscription(Int64, '/target_object_id', self.target_id_callback, 10)
+
+        
         # da bread and da butter
         self.create_timer((1.0/self.get_parameter('output_control_topic_frequency_hz').get_parameter_value().double_value),self.execute_control_output)
     
@@ -95,6 +104,10 @@ class PlannerNode(Node):
 
         self.heading_controller = PidController()
         self.distance_controller = PidController()
+    
+    def target_id_callback(self, msg):
+        self.target_object_id = msg.data
+        self.get_logger().info(f'Received target object ID: {self.target_object_id}')
 
     def is_within_tolerance(self, error, tolerance) -> bool:
         '''checks if a given error is WITHIN OR AT a given tolerance'''
@@ -175,15 +188,36 @@ class PlannerNode(Node):
         reached_location = self.is_within_tolerance(curr_goal_distance, self.get_parameter('internal_location_tolerance_meters').get_parameter_value().double_value)
         reached_heading = self.is_within_tolerance(curr_goal_heading_error, self.get_parameter('internal_heading_tolerance_degrees').get_parameter_value().double_value)
         
-        if not reached_location:
-            executed_twist.linear.x = linear_control_velocity
-            if not reached_heading:
-                executed_twist.angular.z = angular_control_velocity
-            sucess_feedback.data = False
+
+        intermediate_reached_location = reached_location = self.is_within_tolerance(curr_goal_distance, self.intermediate_tolerance)
+      
+
+        if reached_location:
+            self.made_to_goal += 1  # if we reached the goal increment number of times in a row
         else:
+            self.made_to_goal = 0 # if not at goal set to zero
+        
+        # execute controller
+        executed_twist.linear.x = linear_control_velocity
+        if not reached_heading:
+            executed_twist.angular.z = angular_control_velocity
+            sucess_feedback.data = False
+            
+        
+        # stop condition: intermediate waypoint
+        if intermediate_reached_location and self.target_object_id >= 10:
             self.get_logger().info('sucessfully reached goal')
             sucess_feedback.data = True
+            self.made_to_goal += 1
 
+        # stop condition: object waypoint
+        if self.made_to_goal == self.GOAL_CONFIRM_COUNT and self.target_object_id < 10:
+            self.get_logger().info('sucessfully reached goal')
+            sucess_feedback.data = True
+            self.made_to_goal += 1
+
+
+        # clamp linear velocity
         if (executed_twist.linear.x > 1.0):
             executed_twist.linear.x = 1.0
 

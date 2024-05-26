@@ -194,19 +194,20 @@ class ObjectChaser(Node):
                              (self.target_pose.position.y)**2 +
                              (self.target_pose.position.z)**2)
 
-        if distance < 2:
-            self.get_logger().info('We are close enough to the target. Setting waypoint to current rover position.')
-            waypoint = NavSatFix()
-            waypoint.latitude = self.rover_pose[0]
-            waypoint.longitude = self.rover_pose[1]
-            self.reached_goal_pub.publish(Bool(data=True))
+        # if distance < 2.0:
+        #     self.get_logger().info('We are close enough to the target.')
+        #     # waypoint = NavSatFix()
+        #     # waypoint.latitude = self.rover_pose[0]
+        #     # waypoint.longitude = self.rover_pose[1]
+        #     # self.reached_goal_pub.publish(Bool(data=True))
             
-        else:
-            # Calculate the waypoint based on the target pose
-            goal_latlong = calculate_gps_from_relative_distance_vector(self.rover_pose[0], self.rover_pose[1], self.rover_heading, self.target_pose.position.x, -self.target_pose.position.y)
-            waypoint = NavSatFix()
-            waypoint.latitude = goal_latlong[0]
-            waypoint.longitude = goal_latlong[1]
+        # else:
+        
+        # Calculate the waypoint based on the target pose
+        goal_latlong = calculate_gps_from_relative_distance_vector(self.rover_pose[0], self.rover_pose[1], self.rover_heading, self.target_pose.position.x, -self.target_pose.position.y)
+        waypoint = NavSatFix()
+        waypoint.latitude = goal_latlong[0]
+        waypoint.longitude = goal_latlong[1]
 
         self.waypoint_pub.publish(waypoint)
         self.get_logger().info(f'Published waypoint: ({waypoint.latitude}, {waypoint.longitude})')
