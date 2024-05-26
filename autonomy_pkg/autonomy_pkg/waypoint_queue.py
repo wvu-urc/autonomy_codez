@@ -25,11 +25,15 @@ class WaypointQueue(Node):
         self.freeze_srv = self.create_service(Trigger, 'go_to_next_point', self.unfreeze_callback)
 
         self.freeze = False
-        self.current_goal_index = 0
+        self.current_goal_index = -1
         self.path = None
 
     def path_callback(self, msg):
         self.path = msg.points
+        self.get_logger().info('got a list')
+        if not self.freeze and self.current_goal_index < len(self.path):
+            self.publish_next_goal()
+
     
     def set_waypoint_callback(self,msg):
         self.current_goal_index = msg.data - 1 # this is so the number matches the gui waypoint id TODO
@@ -48,6 +52,7 @@ class WaypointQueue(Node):
             self.publish_next_goal()
 
     def publish_next_goal(self):
+        self.current_goal_index += 1
         if self.path and self.current_goal_index < len(self.path) and not self.freeze:
             current_goal = self.path[self.current_goal_index]
             goal_msg = NavSatFix()
