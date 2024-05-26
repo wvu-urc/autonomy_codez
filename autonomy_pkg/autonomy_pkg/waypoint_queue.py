@@ -4,6 +4,7 @@ from robot_interfaces.msg import UrcCustomPath, UrcCustomPoint
 from std_msgs.msg import Bool, Int64, String
 from sensor_msgs.msg import NavSatFix
 from geometry_msgs.msg import PointStamped
+from std_srvs.srv import Trigger
 
 class WaypointQueue(Node):
     def __init__(self):
@@ -19,6 +20,9 @@ class WaypointQueue(Node):
         self.goal_gps_pub = self.create_publisher(NavSatFix, 'goal_gps', 10)
         self.object_target_id_pub = self.create_publisher(Int64, 'object_target_id', 10)
         self.led_color_pub = self.create_publisher(String, 'led_color_topic', 10)
+
+        # services
+        self.freeze_srv = self.create_service(Trigger, 'go_to_next_point', self.unfreeze_callback)
 
         self.freeze = False
         self.current_goal_index = 0
@@ -60,6 +64,13 @@ class WaypointQueue(Node):
             self.freeze = True
             led_arrival_msg = String(data='arrival')
             self.led_color_pub.publish(led_arrival_msg)
+
+    def unfreeze_callback(self, request, response):
+        self.freeze = True
+
+        response.success = True
+        response.message = "Unfroze autonomy, heading to next objective"
+        return response
 
 
 def main(args=None):
