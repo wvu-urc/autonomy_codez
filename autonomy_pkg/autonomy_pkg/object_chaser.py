@@ -42,7 +42,7 @@ class ObjectChaser(Node):
         self.create_subscription(ArucoMarkers, '/aruco_markers', self.aruco_callback, 10)
         self.create_subscription(NavSatFix, '/mavros/global_position/global', self.rover_pose_callback, qos_profile= self.mavros_qos_profile)
         self.create_subscription(Float64, '/mavros/global_position/compass_hdg', self.heading_callback,qos_profile= self.mavros_qos_profile)
-        self.create_subscription(Int64, '/target_objct_id', self.target_id_callback, 10)
+        self.create_subscription(Int64, '/target_object_id', self.target_id_callback, 10)
 
 
         # Publisher
