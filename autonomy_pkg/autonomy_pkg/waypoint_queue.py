@@ -8,7 +8,7 @@ from std_srvs.srv import Trigger
 
 class WaypointQueue(Node):
     def __init__(self):
-        super().__init__('path_subscriber_node')
+        super().__init__('waypoint_queue_node')
         
         # Subscribers
         self.path_sub = self.create_subscription(UrcCustomPath, '/waypoint_list', self.path_callback, 10)
@@ -18,21 +18,22 @@ class WaypointQueue(Node):
         
         # Publishers
         self.goal_gps_pub = self.create_publisher(NavSatFix, 'goal_gps', 10)
-        self.object_target_id_pub = self.create_publisher(Int64, 'object_target_id', 10)
+        self.object_target_id_pub = self.create_publisher(Int64, 'target_object_id', 10)
         self.led_color_pub = self.create_publisher(String, 'led_color_topic', 10)
 
         # services
         self.freeze_srv = self.create_service(Trigger, 'go_to_next_point', self.unfreeze_callback)
 
-        self.freeze = False
+        self.freeze = True
         self.current_goal_index = -1
         self.path = None
 
     def path_callback(self, msg):
         self.path = msg.points
+        print(self.current_goal_index)
         self.get_logger().info('got a list')
-        if not self.freeze and self.current_goal_index < len(self.path):
-            self.publish_next_goal()
+        if self.freeze:
+            self.get_logger().info('frozen')
 
     
     def set_waypoint_callback(self,msg):
@@ -52,8 +53,12 @@ class WaypointQueue(Node):
             self.publish_next_goal()
 
     def publish_next_goal(self):
-        self.current_goal_index += 1
+        
+        if not self.freeze:
+            self.current_goal_index += 1
+
         if self.path and self.current_goal_index < len(self.path) and not self.freeze:
+            
             current_goal = self.path[self.current_goal_index]
             goal_msg = NavSatFix()
             goal_msg.latitude = current_goal.point.point.x
@@ -61,7 +66,7 @@ class WaypointQueue(Node):
 
             self.goal_gps_pub.publish(goal_msg)
             self.object_target_id_pub.publish(Int64(data=current_goal.aruco_id))
-            self.led_color_pub.publish(String(data="autonomous"))
+            
 
             self.get_logger().info(f'Published next goal: {current_goal.location_label}')
         else:
@@ -73,8 +78,16 @@ class WaypointQueue(Node):
     def unfreeze_callback(self, request, response):
         self.freeze = True
 
+        if  self.current_goal_index < len(self.path):
+            self.freeze = False
+            self.publish_next_goal()
+            self.led_color_pub.publish(String(data="autonomous"))
+
         response.success = True
-        response.message = "Unfroze autonomy, heading to next objective"
+        if not self.freeze:
+            response.message = "Unfroze autonomy, heading to next objective"
+        else:
+             response.message = "Froze autonomy, no new waypoints"
         return response
 
 

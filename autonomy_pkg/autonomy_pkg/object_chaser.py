@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 import math
 from geometry_msgs.msg import Pose, PoseArray, Point, TransformStamped, PoseStamped
-from std_msgs.msg import Int64
+from std_msgs.msg import Int64, Bool
 from std_msgs.msg import Float64
 import tf2_ros
 import tf_transformations
@@ -47,6 +47,7 @@ class ObjectChaser(Node):
 
         # Publisher
         self.waypoint_pub = self.create_publisher(NavSatFix, '/goal_gps', 10)
+        self.reached_goal_pub = self.create_publisher(Bool, '/object_reached', 10)
 
         # TF buffer and listener
         self.tf_buffer = tf2_ros.Buffer()
@@ -198,6 +199,7 @@ class ObjectChaser(Node):
             waypoint = NavSatFix()
             waypoint.latitude = self.rover_pose[0]
             waypoint.longitude = self.rover_pose[1]
+            self.reached_goal_pub.publish(Bool(data=True))
             
         else:
             # Calculate the waypoint based on the target pose

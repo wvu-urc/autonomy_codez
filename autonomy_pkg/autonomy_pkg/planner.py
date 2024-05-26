@@ -28,7 +28,7 @@ class PlannerNode(Node):
         self.declare_parameter('internal_heading_tolerance_degrees', 5.0)
 
         # outgoing control output publishing parameters
-        self.declare_parameter('output_control_topic','/cmd_vel')
+        self.declare_parameter('output_control_topic','auto/cmd_vel')
         self.declare_parameter('output_control_topic_frequency_hz', 10.0)
         self.declare_parameter('output_feedback_topic','/planner_reached_goal')
 
