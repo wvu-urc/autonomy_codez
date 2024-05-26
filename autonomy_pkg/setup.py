@@ -27,6 +27,7 @@ setup(
             'autonomy_ptp_planner_node = autonomy_pkg.planner:main',
             'autonomy_text_interface_node = autonomy_pkg.interface:main',
             'object_chaser_node = autonomy_pkg.object_chaser:main',
+            'waypoint_queue_node = autonomy_pkg.waypoint_queue:main',
         ],
     },
 )

@@ -193,7 +193,7 @@ class ObjectChaser(Node):
                              (self.target_pose.position.y)**2 +
                              (self.target_pose.position.z)**2)
 
-        if distance < 1.5:
+        if distance < 2:
             self.get_logger().info('We are close enough to the target. Setting waypoint to current rover position.')
             waypoint = NavSatFix()
             waypoint.latitude = self.rover_pose[0]
