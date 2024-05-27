@@ -204,16 +204,22 @@ class PlannerNode(Node):
             sucess_feedback.data = False
             
         
-        # stop condition: intermediate waypoint
-        if intermediate_reached_location and self.target_object_id >= 10:
+        # stop condition: intermediate waypoint: Note: avoid bad aruco marker 17
+        if intermediate_reached_location and self.target_object_id >= 20 and self.made_to_goal == 1:
             self.get_logger().info('sucessfully reached goal')
             sucess_feedback.data = True
-            self.made_to_goal += 1
+            self.planner_feedback_pub.publish(sucess_feedback)
+            executed_twist.linear.x = 0.0
+            executed_twist.angular.z = 0.0
+            self.made_to_goal +=1
 
         # stop condition: object waypoint
         if self.made_to_goal == self.GOAL_CONFIRM_COUNT and self.target_object_id < 10:
             self.get_logger().info('sucessfully reached goal')
             sucess_feedback.data = True
+            self.planner_feedback_pub.publish(sucess_feedback)
+            executed_twist.linear.x = 0.0
+            executed_twist.angular.z = 0.0
             self.made_to_goal += 1
 
 
@@ -223,7 +229,7 @@ class PlannerNode(Node):
 
         if self.get_parameter('planner_enabled').get_parameter_value().bool_value:
             self.output_control_pub.publish(executed_twist)
-            self.planner_feedback_pub.publish(sucess_feedback)
+            
 
 def main(args=None):
     rclpy.init(args=args)

@@ -20,7 +20,7 @@ class WaypointQueue(Node):
         self.goal_gps_pub = self.create_publisher(NavSatFix, 'goal_gps', 10)
         self.object_target_id_pub = self.create_publisher(Int64, 'target_object_id', 10)
         self.led_color_pub = self.create_publisher(String, 'led_color_topic', 10)
-        self.waypoint_index_pub = self.create_publisher(Int64, '/waypoint_index', 10)
+        self.waypoint_index_pub = self.create_publisher(String, '/waypoint_index', 10)
 
         # services
         self.freeze_srv = self.create_service(Trigger, 'go_to_next_point', self.unfreeze_callback)
@@ -31,7 +31,7 @@ class WaypointQueue(Node):
 
     def path_callback(self, msg):
         self.path = msg.points
-        self.waypoint_index_pub.publish(Int64(data=self.current_goal_index))
+        self.waypoint_index_pub.publish(String(data=str(self.current_goal_index)))
         self.get_logger().info('got a list')
         if self.freeze:
             self.get_logger().info('frozen')
@@ -39,7 +39,7 @@ class WaypointQueue(Node):
     
     def set_waypoint_callback(self,msg):
         self.current_goal_index = msg.data - 1 # this is so the number matches the gui waypoint id TODO
-        self.waypoint_index_pub.publish(Int64(data=self.current_goal_index))
+        self.waypoint_index_pub.publish(String(data=str(self.current_goal_index)))
 
     def object_reached_callback(self, msg):
         if msg.data:
@@ -58,7 +58,7 @@ class WaypointQueue(Node):
         
         if not self.freeze:
             self.current_goal_index += 1
-            self.waypoint_index_pub.publish(Int64(data=self.current_goal_index))
+            self.waypoint_index_pub.publish(String(data=str(self.current_goal_index)))
 
         if self.path and self.current_goal_index < len(self.path) and not self.freeze:
             

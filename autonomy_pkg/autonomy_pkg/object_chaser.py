@@ -14,7 +14,6 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
 '''
 target objects
-
 0 = start post = aruco marker 0
 1 = post 1 = aruco marker 1
 2 = post 2 = aruco marker 2
@@ -22,6 +21,8 @@ target objects
 4 = hammer = object 1
 5 = keyboard = object 2
 6 = water bottle = object 3
+
+9 = gps (no object in there)
 
 99 = any other id
 '''
@@ -194,23 +195,20 @@ class ObjectChaser(Node):
                              (self.target_pose.position.y)**2 +
                              (self.target_pose.position.z)**2)
 
-        # if distance < 2.0:
-        #     self.get_logger().info('We are close enough to the target.')
-        #     # waypoint = NavSatFix()
-        #     # waypoint.latitude = self.rover_pose[0]
-        #     # waypoint.longitude = self.rover_pose[1]
-        #     # self.reached_goal_pub.publish(Bool(data=True))
+        if distance < 2.0:
+            self.get_logger().info('We are close enough to the target.')
+            self.reached_goal_pub.publish(Bool(data=True))
             
-        # else:
+        else:
         
-        # Calculate the waypoint based on the target pose
-        goal_latlong = calculate_gps_from_relative_distance_vector(self.rover_pose[0], self.rover_pose[1], self.rover_heading, self.target_pose.position.x, -self.target_pose.position.y)
-        waypoint = NavSatFix()
-        waypoint.latitude = goal_latlong[0]
-        waypoint.longitude = goal_latlong[1]
+            # Calculate the waypoint based on the target pose
+            goal_latlong = calculate_gps_from_relative_distance_vector(self.rover_pose[0], self.rover_pose[1], self.rover_heading, self.target_pose.position.x, -self.target_pose.position.y)
+            waypoint = NavSatFix()
+            waypoint.latitude = goal_latlong[0]
+            waypoint.longitude = goal_latlong[1]
 
-        self.waypoint_pub.publish(waypoint)
-        self.get_logger().info(f'Published waypoint: ({waypoint.latitude}, {waypoint.longitude})')
+            self.waypoint_pub.publish(waypoint)
+            self.get_logger().info(f'Published waypoint: ({waypoint.latitude}, {waypoint.longitude})')
 
         # Reset the found lists
         self.aruco_markers = None
