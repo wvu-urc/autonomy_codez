@@ -31,7 +31,7 @@ class WaypointQueue(Node):
 
     def path_callback(self, msg):
         self.path = msg.points
-        self.waypoint_index_pub.publish(String(data=str(self.current_goal_index)))
+        self.waypoint_index_pub.publish(String(data=str(self.current_goal_index+1)))
         self.get_logger().info('got a list')
         if self.freeze:
             self.get_logger().info('frozen')
@@ -39,7 +39,7 @@ class WaypointQueue(Node):
     
     def set_waypoint_callback(self,msg):
         self.current_goal_index = msg.data - 1 # this is so the number matches the gui waypoint id TODO
-        self.waypoint_index_pub.publish(String(data=str(self.current_goal_index)))
+        self.waypoint_index_pub.publish(String(data=str(self.current_goal_index+1)))
 
     def object_reached_callback(self, msg):
         if msg.data:
@@ -56,11 +56,13 @@ class WaypointQueue(Node):
 
     def publish_next_goal(self):
         
-        if not self.freeze:
+        # FIXME the -1 makes the stop condition happen corretly, but the goal waypoint topic does not update
+	# This results in erroneous arrival, and we can't move on to further waypoints
+	if not self.freeze and self.current_goal_index < len(self.path)-1:
             self.current_goal_index += 1
-            self.waypoint_index_pub.publish(String(data=str(self.current_goal_index)))
+            self.waypoint_index_pub.publish(String(data=str(self.current_goal_index+1)))
 
-        if self.path and self.current_goal_index < len(self.path) and not self.freeze:
+        if self.path and self.current_goal_index < len(self.path)-1 and not self.freeze:
             
             current_goal = self.path[self.current_goal_index]
             goal_msg = NavSatFix()

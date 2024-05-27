@@ -47,6 +47,7 @@ class PlannerNode(Node):
         self.GOAL_CONFIRM_COUNT = 30 # number of succussful times in a row that we are within range
         self.target_object_id = 99
         self.intermediate_tolerance = 3.0
+        self.FREEZE = False
 
         self.mavros_qos_profile = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -126,6 +127,8 @@ class PlannerNode(Node):
             self.print_if_debug(f'updating goal gps location: {goal_gps_msg.latitude},{goal_gps_msg.longitude}')
             self.goal_lat_long.lat = goal_gps_msg.latitude
             self.goal_lat_long.long = goal_gps_msg.longitude
+            self.FREEZE = False
+            self.made_to_goal = 0
 
     def update_curr_gps(self, curr_gps_msg: NavSatFix) -> None:
         '''updates internal current gps point after recieving a message from localization sensor'''
@@ -202,7 +205,10 @@ class PlannerNode(Node):
         if not reached_heading:
             executed_twist.angular.z = angular_control_velocity
             sucess_feedback.data = False
-            
+
+        if self.FREEZE:
+            self.output_control_pub.publish(Twist())
+            return
         
         # stop condition: intermediate waypoint: Note: avoid bad aruco marker 17
         if intermediate_reached_location and self.target_object_id >= 20 and self.made_to_goal == 1:
@@ -211,15 +217,18 @@ class PlannerNode(Node):
             self.planner_feedback_pub.publish(sucess_feedback)
             executed_twist.linear.x = 0.0
             executed_twist.angular.z = 0.0
+            self.output_control_pub.publish(executed_twist)
             self.made_to_goal +=1
 
         # stop condition: object waypoint
         if self.made_to_goal == self.GOAL_CONFIRM_COUNT and self.target_object_id < 10:
             self.get_logger().info('sucessfully reached goal')
             sucess_feedback.data = True
+            self.FREEZE = True
             self.planner_feedback_pub.publish(sucess_feedback)
             executed_twist.linear.x = 0.0
             executed_twist.angular.z = 0.0
+            self.output_control_pub.publish(executed_twist)
             self.made_to_goal += 1
 
 
