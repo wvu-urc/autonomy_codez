@@ -39,7 +39,7 @@ class ObjectChaser(Node):
         ) 
 
         # Subscribers
-        self.create_subscription(ArucoMarkers, '/objects', self.objects_callback, 10)
+        self.create_subscription(ArucoMarkers, '/object_poses', self.objects_callback, 10)
         self.create_subscription(ArucoMarkers, '/aruco_markers', self.aruco_callback, 10)
         self.create_subscription(NavSatFix, '/mavros/global_position/global', self.rover_pose_callback, qos_profile= self.mavros_qos_profile)
         self.create_subscription(Float64, '/mavros/global_position/compass_hdg', self.heading_callback,qos_profile= self.mavros_qos_profile)
@@ -65,7 +65,8 @@ class ObjectChaser(Node):
         self.target_pose = None # in base link frame
 
     def target_id_callback(self, msg):
-        self.target_object_id = msg.data
+        if msg.data >=1 and msg.data <=9:
+            self.target_object_id = msg.data
         self.get_logger().info(f'Received target object ID: {self.target_object_id}')
         self.update_waypoint()
 
@@ -196,6 +197,7 @@ class ObjectChaser(Node):
                              (self.target_pose.position.z)**2)
 
         if distance < 2.0:
+            self.target_object_id = 99 # explicitly set to 99 so we don't go back to the same object we already reached 
             self.get_logger().info('We are close enough to the target.')
             self.reached_goal_pub.publish(Bool(data=True))
             
