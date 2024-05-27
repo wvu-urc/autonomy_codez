@@ -124,7 +124,7 @@ class PlannerNode(Node):
         message_is_not_empty = not (goal_gps_msg.latitude == 0.0 and goal_gps_msg.longitude == 0.0) 
         
         if message_is_not_empty:
-            self.print_if_debug(f'updating goal gps location: {goal_gps_msg.latitude},{goal_gps_msg.longitude}')
+          #  self.print_if_debug(f'updating goal gps location: {goal_gps_msg.latitude},{goal_gps_msg.longitude}')
             self.goal_lat_long.lat = goal_gps_msg.latitude
             self.goal_lat_long.long = goal_gps_msg.longitude
             self.FREEZE = False
@@ -132,13 +132,13 @@ class PlannerNode(Node):
 
     def update_curr_gps(self, curr_gps_msg: NavSatFix) -> None:
         '''updates internal current gps point after recieving a message from localization sensor'''
-        self.print_if_debug(f'updating curret gps location: {curr_gps_msg.latitude},{curr_gps_msg.longitude}')
+        #self.print_if_debug(f'updating curret gps location: {curr_gps_msg.latitude},{curr_gps_msg.longitude}')
         self.curr_lat_long.lat = curr_gps_msg.latitude
         self.curr_lat_long.long = curr_gps_msg.longitude 
 
     def update_curr_heading(self, heading_msg: Float64) -> None:
         '''recieves ros heading data, saves in local node object to self.curr_heading_degrees'''
-        self.print_if_debug(f'current heading: {heading_msg.data}')
+        #self.print_if_debug(f'current heading: {heading_msg.data}')
         self.curr_heading_degrees = heading_msg.data
 
     def execute_control_output(self) -> None:
@@ -157,7 +157,7 @@ class PlannerNode(Node):
         # positional error and control calculation
         curr_goal_distance = calculate_distance(self.goal_lat_long.lat, self.goal_lat_long.long, self.curr_lat_long.lat, self.curr_lat_long.long)
        
-        self.print_if_debug(f'current distance error {curr_goal_distance}')
+        #self.print_if_debug(f'current distance error {curr_goal_distance}')
        
         linear_control_velocity = self.distance_controller.update(
             current_error=curr_goal_distance,
@@ -166,7 +166,7 @@ class PlannerNode(Node):
             kd=self.get_parameter('distance_kd').get_parameter_value().double_value,
             total_gain=self.get_parameter('distance_net_k').get_parameter_value().double_value,
         )
-        self.print_if_debug(f'linear output control (m/s) {linear_control_velocity}')
+        #self.print_if_debug(f'linear output control (m/s) {linear_control_velocity}')
 
         # rotational error and control calculation
         curr_compass_goal_heading_degrees = calculate_goal_heading(self.goal_lat_long.lat, self.goal_lat_long.long, self.curr_lat_long.lat, self.curr_lat_long.long)
@@ -174,7 +174,7 @@ class PlannerNode(Node):
         #TODO REMOVE MAGIC NUMBER!!!!!!!!!!!!
         curr_goal_heading_error = calculate_heading_error(curr_compass_goal_heading_degrees, self.curr_heading_degrees + 180.0)
         
-        self.print_if_debug(f'current heading error {curr_goal_heading_error}')
+        #self.print_if_debug(f'current heading error {curr_goal_heading_error}')
         
         angular_control_velocity = self.heading_controller.update(
             current_error=curr_goal_heading_error,
@@ -183,7 +183,7 @@ class PlannerNode(Node):
             kd=self.get_parameter('heading_kd').get_parameter_value().double_value,
             total_gain=self.get_parameter('heading_net_k').get_parameter_value().double_value,
         )
-        self.print_if_debug(f'output angular control velcity (rad/sec) {angular_control_velocity}\n\n')
+        #self.print_if_debug(f'output angular control velcity (rad/sec) {angular_control_velocity}\n\n')
 
         executed_twist = Twist()
         sucess_feedback = Bool()
@@ -212,7 +212,7 @@ class PlannerNode(Node):
         
         # stop condition: intermediate waypoint: Note: avoid bad aruco marker 17
         if intermediate_reached_location and self.target_object_id >= 20 and self.made_to_goal == 1:
-            self.get_logger().info('sucessfully reached goal')
+            #self.get_logger().info('sucessfully reached goal')
             sucess_feedback.data = True
             self.planner_feedback_pub.publish(sucess_feedback)
             executed_twist.linear.x = 0.0
@@ -222,7 +222,7 @@ class PlannerNode(Node):
 
         # stop condition: object waypoint
         if self.made_to_goal == self.GOAL_CONFIRM_COUNT and self.target_object_id < 10:
-            self.get_logger().info('sucessfully reached goal')
+            #self.get_logger().info('sucessfully reached goal')
             sucess_feedback.data = True
             self.FREEZE = True
             self.planner_feedback_pub.publish(sucess_feedback)

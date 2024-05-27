@@ -52,17 +52,23 @@ class WaypointQueue(Node):
     def planner_reached_goal_callback(self, msg):
         if msg.data:
             self.get_logger().info('Planner reached goal, sending next waypoint')
-            self.publish_next_goal()
+            if self.current_goal_index != len(self.path)-1:
+                self.publish_next_goal()
+            else:
+                self.get_logger().info('No more goals to publish')
+                self.freeze = True
+                led_arrival_msg = String(data='arrival')
+                self.led_color_pub.publish(led_arrival_msg)
 
     def publish_next_goal(self):
         
         # FIXME the -1 makes the stop condition happen corretly, but the goal waypoint topic does not update
-	# This results in erroneous arrival, and we can't move on to further waypoints
-	if not self.freeze and self.current_goal_index < len(self.path)-1:
+	    # This results in erroneous arrival, and we can't move on to further waypoints
+        if not self.freeze and self.current_goal_index < len(self.path)-1:
             self.current_goal_index += 1
             self.waypoint_index_pub.publish(String(data=str(self.current_goal_index+1)))
 
-        if self.path and self.current_goal_index < len(self.path)-1 and not self.freeze:
+        if self.path and self.current_goal_index < len(self.path) and not self.freeze:
             
             current_goal = self.path[self.current_goal_index]
             goal_msg = NavSatFix()
