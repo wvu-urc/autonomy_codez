@@ -22,7 +22,7 @@ class PlannerNode(Node):
         self.declare_parameter('internal_location_tolerance_meters', 2.0)
 
         # heading controller parameters
-        self.declare_parameter('heading_kp', -0.02)
+        self.declare_parameter('heading_kp', -0.04)
         self.declare_parameter('heading_ki', 0.000)
         self.declare_parameter('heading_kd', 0.0)
         self.declare_parameter('heading_net_k', 0.1)
