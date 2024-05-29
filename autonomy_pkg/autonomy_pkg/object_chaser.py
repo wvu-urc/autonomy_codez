@@ -165,7 +165,7 @@ class ObjectChaser(Node):
 
     def update_waypoint(self):
         if self.rover_pose is None or self.target_object_id is None or self.rover_heading is None:
-            self.get_logger().warn('waiting for rover pose or target object id')
+            # self.get_logger().warn('waiting for rover pose or target object id')
             return  # Wait until all data is available
 
         found_obj = False
@@ -198,7 +198,7 @@ class ObjectChaser(Node):
 
         if distance < 2.0:
             self.target_object_id = 99 # explicitly set to 99 so we don't go back to the same object we already reached 
-            self.get_logger().info('We are close enough to the target.')
+            # self.get_logger().info('We are close enough to the target.')
             self.reached_goal_pub.publish(Bool(data=True))
             
         else:
@@ -210,7 +210,7 @@ class ObjectChaser(Node):
             waypoint.longitude = goal_latlong[1]
 
             self.waypoint_pub.publish(waypoint)
-            self.get_logger().info(f'Published waypoint: ({waypoint.latitude}, {waypoint.longitude})')
+            # self.get_logger().info(f'Published waypoint: ({waypoint.latitude}, {waypoint.longitude})')
 
         # Reset the found lists
         self.aruco_markers = None

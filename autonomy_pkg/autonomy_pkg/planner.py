@@ -145,13 +145,13 @@ class PlannerNode(Node):
         '''take in current gps information, calculate distance and heading, apply controller, execute controller outputs'''
 
         if self.goal_lat_long.lat == 0.0 or self.goal_lat_long.long == 0.0:
-            self.get_logger().info("Have not recieved a goal, not starting control loop")
+            # self.get_logger().info("Have not recieved a goal, not starting control loop")
             return
         if self.curr_lat_long.lat == 0.0 or self.curr_lat_long.long == 0.0:
-            self.get_logger().info("Have not recieved the rover's current location, not starting control loop")
+            # self.get_logger().info("Have not recieved the rover's current location, not starting control loop")
             return
         if self.curr_heading_degrees is None:
-            self.get_logger().info("Have not recieved the rover's current heading, not starting control loop")
+            # self.get_logger().info("Have not recieved the rover's current heading, not starting control loop")
             return
         
         # positional error and control calculation
